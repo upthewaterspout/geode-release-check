@@ -1,0 +1,58 @@
+apply plugin: 'java'
+
+if(!project.hasProperty('mavenURL') || !project.hasProperty('downloadURL') || !project.hasProperty('version')) {
+  throw new GradleException("Usage: ./gradlew build -PmavenURL= -PdownloadURL= -version=");
+}
+
+repositories {
+    jcenter()
+    maven { url "$mavenURL" }
+}
+
+dependencies {
+    compile 'org.apache.geode:geode-core:$version'
+}
+
+def downloadDir = "${project.buildDir}/dist.apache.org/repos/dist/dev/incubator/geode/$version"
+def srcDist = "${project.buildDir}/srcDist"
+def versionNORC = version.replaceAll(/.RC\d+/, "");
+
+//TODO - turn this into at least an ant get or something javaified
+task download(type:Exec, dependsOn: download) {
+  commandLine 'wget', "$downloadURL", "-m", "-np"
+  workingDir=project.buildDir
+}
+
+//TODO - turn this into at least an ant get or something javaified
+task verifyMD5(type:Exec, dependsOn: download) {
+  commandLine 'bash', '-c', 'md5sum -c *.md5'
+  workingDir=downloadDir
+}
+
+//TODO - turn this into at least an ant get or something javaified
+task verifySHA(type:Exec, dependsOn: download) {
+  commandLine 'bash', '-c', 'sha256sum -c *.sha256'
+  workingDir=downloadDir
+}
+
+//TODO - turn this into at least an ant get or something javaified
+task verifyGPG(type:Exec, dependsOn: download) {
+  commandLine 'bash', '-c', 'ls *.asc | xargs -n1 gpg --verify'
+  workingDir=downloadDir
+}
+
+task unzipSrc(type: Copy, dependsOn: download) {
+  println "${downloadDir}/apache-geode-src-${versionNORC}.zip";
+  def zipFile = file("${downloadDir}/apache-geode-src-${versionNORC}.zip")
+  def outputDir = file(srcDist)
+
+  from zipTree(zipFile)
+  into outputDir
+}
+
+task buildSrc(type: GradleBuild, dependsOn: unzipSrc) {
+  dir="${srcDist}/apache-geode-src-$versionNORC"
+  tasks = ['clean', 'build']
+}
+
+check.dependsOn verifyMD5, verifySHA, verifyGPG, buildSrc
