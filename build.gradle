@@ -4,22 +4,25 @@ if(!project.hasProperty('mavenURL') || !project.hasProperty('downloadURL') || !p
   throw new GradleException("Usage: ./gradlew build -PmavenURL= -PdownloadURL= -version=");
 }
 
+def downloadDir = "${project.buildDir}/dist.apache.org/repos/dist/dev/incubator/geode/$version"
+def srcDist = "${project.buildDir}/srcDist"
+def binDist = "${project.buildDir}/binDist"
+def versionNORC = version.replaceAll(/.RC\d+/, "");
+
 repositories {
     jcenter()
     maven { url "$mavenURL" }
 }
 
 dependencies {
-    compile 'org.apache.geode:geode-core:$version'
+    compile "org.apache.geode:geode-core:$versionNORC"
+    testCompile 'junit:junit:4.12'
 }
 
-def downloadDir = "${project.buildDir}/dist.apache.org/repos/dist/dev/incubator/geode/$version"
-def srcDist = "${project.buildDir}/srcDist"
-def versionNORC = version.replaceAll(/.RC\d+/, "");
 
 //TODO - turn this into at least an ant get or something javaified
-task download(type:Exec, dependsOn: download) {
-  commandLine 'wget', "$downloadURL", "-m", "-np"
+task download(type:Exec) {
+  commandLine 'wget', "$downloadURL", "-m", "-np", "-nv"
   workingDir=project.buildDir
 }
 
@@ -41,6 +44,8 @@ task verifyGPG(type:Exec, dependsOn: download) {
   workingDir=downloadDir
 }
 
+task verifySigs(dependsOn: [verifyMD5, verifySHA, verifyGPG])
+
 task unzipSrc(type: Copy, dependsOn: download) {
   println "${downloadDir}/apache-geode-src-${versionNORC}.zip";
   def zipFile = file("${downloadDir}/apache-geode-src-${versionNORC}.zip")
@@ -50,9 +55,26 @@ task unzipSrc(type: Copy, dependsOn: download) {
   into outputDir
 }
 
-task buildSrc(type: GradleBuild, dependsOn: unzipSrc) {
-  dir="${srcDist}/apache-geode-src-$versionNORC"
-  tasks = ['clean', 'build']
+task unzipBin(type: Copy, dependsOn: download) {
+  println "${downloadDir}/apache-geode-${versionNORC}.zip";
+  def zipFile = file("${downloadDir}/apache-geode-${versionNORC}.zip")
+  def outputDir = file(binDist)
+
+  from zipTree(zipFile)
+  into outputDir
 }
 
-check.dependsOn verifyMD5, verifySHA, verifyGPG, buildSrc
+task testgfsh(type: Exec, dependsOn: unzipBin) {
+  workingDir="${binDist}/apache-geode-$versionNORC"
+  commandLine "$projectDir/scripts/gfsh_test.sh"
+}
+
+
+
+//This is deliberately *not* using gradle build to make sure the wrapper works
+task buildSrc(type: Exec, dependsOn: unzipSrc) {
+  workingDir="${srcDist}/apache-geode-src-$versionNORC"
+  commandLine './gradlew', 'build'
+}
+
+check.dependsOn verifySigs, buildSrc, testgfsh
