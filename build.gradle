@@ -17,7 +17,12 @@ repositories {
 
 dependencies {
     compile "org.apache.geode:geode-core:$versionNORC"
-    testCompile 'junit:junit:4.12'
+   testCompile 'junit:junit:4.12'
+   testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '4.4.1.201607150455-r'
+}
+
+test {
+  systemProperty 'SOURCE_CHECKOUT', srcClone;
 }
 
 
@@ -78,10 +83,13 @@ task buildSrc(type: Exec, dependsOn: unzipSrc) {
 //TODO - remove command line dependency
 task cloneSrc(type:Exec) {
   commandLine 'git', 'clone', '--depth=1', "--branch=rel/v${version}", "https://github.com/apache/incubator-geode", srcClone
+  onlyIf {
+    !file("$srcClone/.git").exists();
+  }
 }
 
 //TODO - remove command line dependency
-task compareSrc(type:Exec, cloneSrc) {
+task compareSrc(type:Exec, dependsOn: cloneSrc) {
   commandLine 'bash', '-c', 
   """diff -r -q \
     -x build \
@@ -97,4 +105,5 @@ task compareSrc(type:Exec, cloneSrc) {
     ${srcDist}/apache-geode-src-${versionNORC} ${srcClone}"""
 }
 
+test.dependsOn cloneSrc
 check.dependsOn verifySigs, buildSrc, testgfsh, compareSrc
