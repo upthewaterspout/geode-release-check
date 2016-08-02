@@ -7,6 +7,7 @@ if(!project.hasProperty('mavenURL') || !project.hasProperty('downloadURL') || !p
 def downloadDir = "${project.buildDir}/dist.apache.org/repos/dist/dev/incubator/geode/$version"
 def srcDist = "${project.buildDir}/srcDist"
 def binDist = "${project.buildDir}/binDist"
+def srcClone = "${project.buildDir}/srcClone"
 def versionNORC = version.replaceAll(/.RC\d+/, "");
 
 repositories {
@@ -20,25 +21,25 @@ dependencies {
 }
 
 
-//TODO - turn this into at least an ant get or something javaified
+//TODO - remove command line dependency - maybe use ant get?
 task download(type:Exec) {
   commandLine 'wget', "$downloadURL", "-m", "-np", "-nv"
   workingDir=project.buildDir
 }
 
-//TODO - turn this into at least an ant get or something javaified
+//TODO - remove command line dependency
 task verifyMD5(type:Exec, dependsOn: download) {
   commandLine 'bash', '-c', 'md5sum -c *.md5'
   workingDir=downloadDir
 }
 
-//TODO - turn this into at least an ant get or something javaified
+//TODO - remove command line dependency
 task verifySHA(type:Exec, dependsOn: download) {
   commandLine 'bash', '-c', 'sha256sum -c *.sha256'
   workingDir=downloadDir
 }
 
-//TODO - turn this into at least an ant get or something javaified
+//TODO - remove command line dependency
 task verifyGPG(type:Exec, dependsOn: download) {
   commandLine 'bash', '-c', 'ls *.asc | xargs -n1 gpg --verify'
   workingDir=downloadDir
@@ -47,7 +48,6 @@ task verifyGPG(type:Exec, dependsOn: download) {
 task verifySigs(dependsOn: [verifyMD5, verifySHA, verifyGPG])
 
 task unzipSrc(type: Copy, dependsOn: download) {
-  println "${downloadDir}/apache-geode-src-${versionNORC}.zip";
   def zipFile = file("${downloadDir}/apache-geode-src-${versionNORC}.zip")
   def outputDir = file(srcDist)
 
@@ -56,7 +56,6 @@ task unzipSrc(type: Copy, dependsOn: download) {
 }
 
 task unzipBin(type: Copy, dependsOn: download) {
-  println "${downloadDir}/apache-geode-${versionNORC}.zip";
   def zipFile = file("${downloadDir}/apache-geode-${versionNORC}.zip")
   def outputDir = file(binDist)
 
@@ -70,11 +69,32 @@ task testgfsh(type: Exec, dependsOn: unzipBin) {
 }
 
 
-
 //This is deliberately *not* using gradle build to make sure the wrapper works
 task buildSrc(type: Exec, dependsOn: unzipSrc) {
   workingDir="${srcDist}/apache-geode-src-$versionNORC"
   commandLine './gradlew', 'build'
 }
 
-check.dependsOn verifySigs, buildSrc, testgfsh
+//TODO - remove command line dependency
+task cloneSrc(type:Exec) {
+  commandLine 'git', 'clone', '--depth=1', "--branch=rel/v${version}", "https://github.com/apache/incubator-geode", srcClone
+}
+
+//TODO - remove command line dependency
+task compareSrc(type:Exec, cloneSrc) {
+  commandLine 'bash', '-c', 
+  """diff -r -q \
+    -x build \
+    -x gradlew \
+    -x gradle-wrapper.jar \
+    -x gradlew.bat \
+    -x .git \
+    -x .gitignore \
+    -x .buildinfo \
+    -x .gradle \
+    -x .travis.yml \
+    -x KEYS \
+    ${srcDist}/apache-geode-src-${versionNORC} ${srcClone}"""
+}
+
+check.dependsOn verifySigs, buildSrc, testgfsh, compareSrc
