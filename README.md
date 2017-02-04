@@ -10,4 +10,4 @@ This currently verifies
   - signatures of artifacts
   - download and basic CRUD test of geode-core from the maven site
   - source build works
-  - basic gfsh CRUD test (manual validation still advised for this, not all errors make it back to the console).
+  - basic gfsh CRUD test
