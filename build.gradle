@@ -4,7 +4,7 @@ if(!project.hasProperty('mavenURL') || !project.hasProperty('downloadURL') || !p
   throw new GradleException("Usage: ./gradlew build -PmavenURL= -PdownloadURL= -version=");
 }
 
-def downloadDir = "${project.buildDir}/dist.apache.org/repos/dist/dev/incubator/geode/$version"
+def downloadDir = "${project.buildDir}/dist.apache.org/repos/dist/dev/geode/$version"
 def srcDist = "${project.buildDir}/srcDist"
 def binDist = "${project.buildDir}/binDist"
 def srcClone = "${project.buildDir}/srcClone"
@@ -82,7 +82,7 @@ task buildSrc(type: Exec, dependsOn: unzipSrc) {
 
 //TODO - remove command line dependency
 task cloneSrc(type:Exec) {
-  commandLine 'git', 'clone', '--depth=1', "--branch=rel/v${version}", "https://github.com/apache/incubator-geode", srcClone
+  commandLine 'git', 'clone', '--depth=1', "--branch=rel/v${version}", "https://github.com/apache/geode", srcClone
   onlyIf {
     !file("$srcClone/.git").exists();
   }
