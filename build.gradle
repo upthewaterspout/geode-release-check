@@ -92,7 +92,7 @@ task buildSrc(type: Exec, dependsOn: unzipSrc) {
 //This is deliberately *not* using gradle build to make sure the wrapper works
 task buildExampleSrc(type: Exec, dependsOn: unzipExampleSrc) {
   workingDir="${exampleSrc}/geode-examples-$versionNORC"
-  commandLine './gradlew', 'build', "-PgeodeRepositoryUrl=$mavenURL"
+  commandLine './gradlew', 'build', 'runAll', "-PgeodeRepositoryUrl=$mavenURL", "-PgeodeReleaseUrl=$downloadURL"
 }
 
 //TODO - remove command line dependency
