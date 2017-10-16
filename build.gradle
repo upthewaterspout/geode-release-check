@@ -123,4 +123,4 @@ task compareSrc(type:Exec, dependsOn: cloneSrc) {
 }
 
 test.dependsOn cloneSrc
-check.dependsOn verifySigs, buildSrc, testgfsh, compareSrc
+check.dependsOn verifySigs, buildSrc, testgfsh, compareSrc, buildExampleSrc
