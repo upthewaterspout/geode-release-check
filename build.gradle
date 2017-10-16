@@ -34,15 +34,31 @@ task download(type:Exec) {
 }
 
 //TODO - remove command line dependency
-task verifyMD5(type:Exec, dependsOn: download) {
-  commandLine 'bash', '-c', 'md5sum -c *.md5'
-  workingDir=downloadDir
+task verifyMD5(dependsOn: download) {
+  doLast {
+    files(file(downloadDir).listFiles())
+      .filter{file -> file.getName().endsWith(".md5")}
+      .each { file ->
+        exec {
+          commandLine 'bash', '-c', "md5sum -c ${file}"
+          workingDir=downloadDir
+        }
+      }
+  }
 }
 
 //TODO - remove command line dependency
-task verifySHA(type:Exec, dependsOn: download) {
-  commandLine 'bash', '-c', 'sha256sum -c *.sha256'
-  workingDir=downloadDir
+task verifySHA(dependsOn: download) {
+  doLast {
+    files(file(downloadDir).listFiles())
+      .filter{file -> file.getName().endsWith(".sha256")}
+      .each { file ->
+        exec {
+          commandLine 'bash', '-c', "shasum -a 256 -c ${file}"
+          workingDir=downloadDir
+        }
+      }
+  }
 }
 
 //TODO - remove command line dependency
