@@ -54,7 +54,7 @@ task verifyGPG(type:Exec, dependsOn: download) {
 task verifySigs(dependsOn: [verifyMD5, verifySHA, verifyGPG])
 
 task unzipSrc(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/apache-geode-src-${versionNORC}.zip")
+  def zipFile = file("${downloadDir}/apache-geode-${versionNORC}-src.zip")
   def outputDir = file(srcDist)
 
   from zipTree(zipFile)
@@ -85,7 +85,7 @@ task unzipExampleSrc(type: Copy, dependsOn: download) {
 
 //This is deliberately *not* using gradle build to make sure the wrapper works
 task buildSrc(type: Exec, dependsOn: unzipSrc) {
-  workingDir="${srcDist}/apache-geode-src-$versionNORC"
+  workingDir="${srcDist}/apache-geode-$versionNORC-src"
   commandLine './gradlew', 'build'
 }
 
@@ -116,8 +116,10 @@ task compareSrc(type:Exec, dependsOn: cloneSrc) {
     -x .buildinfo \
     -x .gradle \
     -x .travis.yml \
+    -x jpf.properties \
+    -x .gitattributes \
     -x KEYS \
-    ${srcDist}/apache-geode-src-${versionNORC} ${srcClone}"""
+    ${srcDist}/apache-geode-${versionNORC}-src ${srcClone}"""
 }
 
 test.dependsOn cloneSrc
