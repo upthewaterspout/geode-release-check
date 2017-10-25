@@ -91,7 +91,7 @@ task testgfsh(type: Exec, dependsOn: unzipBin) {
 }
 
 task unzipExampleSrc(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/geode-examples-${versionNORC}.zip")
+  def zipFile = file("${downloadDir}/apache-geode-examples-${versionNORC}.zip")
   def outputDir = file(exampleSrc)
 
   from zipTree(zipFile)
@@ -107,7 +107,7 @@ task buildSrc(type: Exec, dependsOn: unzipSrc) {
 
 //This is deliberately *not* using gradle build to make sure the wrapper works
 task buildExampleSrc(type: Exec, dependsOn: unzipExampleSrc) {
-  workingDir="${exampleSrc}/geode-examples-$versionNORC"
+  workingDir="${exampleSrc}/apache-geode-examples-$versionNORC"
   commandLine './gradlew', 'build', 'runAll', "-PgeodeRepositoryUrl=$mavenURL", "-PgeodeReleaseUrl=$downloadURL"
 }
 
