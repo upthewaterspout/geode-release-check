@@ -34,36 +34,20 @@ task download(type:Exec) {
 }
 
 //TODO - remove command line dependency
-task verifyMD5(dependsOn: download) {
-  doLast {
-    files(file(downloadDir).listFiles())
-      .filter{file -> file.getName().endsWith(".md5")}
-      .each { file ->
-        exec {
-          commandLine 'bash', '-c', "md5sum -c ${file}"
-          workingDir=downloadDir
-        }
-      }
-  }
+task verifyMD5(type:Exec, dependsOn: download) {
+  commandLine 'bash', '-c', 'ls *.zip *.tar.gz *.tgz | xargs -n1 -I {} md5sum -c {}.md5'
+  workingDir=downloadDir
 }
 
 //TODO - remove command line dependency
-task verifySHA(dependsOn: download) {
-  doLast {
-    files(file(downloadDir).listFiles())
-      .filter{file -> file.getName().endsWith(".sha256")}
-      .each { file ->
-        exec {
-          commandLine 'bash', '-c', "shasum -a 256 -c ${file}"
-          workingDir=downloadDir
-        }
-      }
-  }
+task verifySHA(type:Exec, dependsOn: download) {
+  commandLine 'bash', '-c', 'ls *.zip *.tar.gz *.tgz | xargs -n1 -I {} shasum -a 256 -c {}.sha256'
+  workingDir=downloadDir
 }
 
 //TODO - remove command line dependency
 task verifyGPG(type:Exec, dependsOn: download) {
-  commandLine 'bash', '-c', 'ls *.asc | xargs -n1 gpg --verify'
+  commandLine 'bash', '-c', 'ls *.zip *.tar.gz *.tgz | xargs -n1 -I {} gpg --verify {}.asc'
   workingDir=downloadDir
 }
 
