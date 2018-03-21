@@ -34,12 +34,6 @@ task download(type:Exec) {
 }
 
 //TODO - remove command line dependency
-task verifyMD5(type:Exec, dependsOn: download) {
-  commandLine 'bash', '-c', 'ls *.zip *.tar.gz *.tgz | xargs -n1 -I {} md5sum -c {}.md5'
-  workingDir=downloadDir
-}
-
-//TODO - remove command line dependency
 task verifySHA(type:Exec, dependsOn: download) {
   commandLine 'bash', '-c', 'ls *.zip *.tar.gz *.tgz | xargs -n1 -I {} shasum -a 256 -c {}.sha256'
   workingDir=downloadDir
@@ -51,7 +45,7 @@ task verifyGPG(type:Exec, dependsOn: download) {
   workingDir=downloadDir
 }
 
-task verifySigs(dependsOn: [verifyMD5, verifySHA, verifyGPG])
+task verifySigs(dependsOn: [verifySHA, verifyGPG])
 
 task unzipSrc(type: Copy, dependsOn: download) {
   def zipFile = file("${downloadDir}/apache-geode-${versionNORC}-src.zip")
