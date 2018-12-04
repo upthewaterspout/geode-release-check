@@ -9,6 +9,8 @@ def srcDist = "${project.buildDir}/srcDist"
 def exampleSrc = "${project.buildDir}/exampleSrc"
 def binDist = "${project.buildDir}/binDist"
 def srcClone = "${project.buildDir}/srcClone"
+def nativeSrcDist = "${project.buildDir}/nativeSrcDist"
+def nativeSrcClone = "${project.buildDir}/nativeSrcClone"
 def versionNORC = version.replaceAll(/.RC\d+/, "");
 
 repositories {
@@ -48,18 +50,18 @@ task verifyGPG(type:Exec, dependsOn: download) {
 task verifySigs(dependsOn: [verifySHA, verifyGPG])
 
 task unzipSrc(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/apache-geode-${versionNORC}-src.zip")
+  def zipFile = file("${downloadDir}/apache-geode-${versionNORC}-src.tgz")
   def outputDir = file(srcDist)
 
-  from zipTree(zipFile)
+  from tarTree(zipFile)
   into outputDir
 }
 
 task unzipBin(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/apache-geode-${versionNORC}.zip")
+  def zipFile = file("${downloadDir}/apache-geode-${versionNORC}.tgz")
   def outputDir = file(binDist)
 
-  from zipTree(zipFile)
+  from tarTree(zipFile)
   into outputDir
 }
 
@@ -97,6 +99,21 @@ task cloneSrc(type:Exec) {
   }
 }
 
+task cloneNativeSrc(type:Exec) {
+  commandLine 'git', 'clone', '--depth=1', "--branch=rel/v${version}", "https://github.com/apache/geode-native", nativeSrcClone
+  onlyIf {
+    !file("$nativeSrcClone/.git").exists();
+  }
+}
+
+task unzipSrcNative(type: Copy, dependsOn: download) {
+  def zipFile = file("${downloadDir}/apache-geode-native-${versionNORC}-Source.tar.gz")
+  def outputDir = file(nativeSrcDist)
+
+  from tarTree(zipFile)
+  into outputDir
+}
+
 //TODO - remove command line dependency
 task compareSrc(type:Exec, dependsOn: cloneSrc) {
   commandLine 'bash', '-c', 
@@ -116,5 +133,14 @@ task compareSrc(type:Exec, dependsOn: cloneSrc) {
     ${srcDist}/apache-geode-${versionNORC}-src ${srcClone}"""
 }
 
+
+task compareNativeSrc(type:Exec, dependsOn: [cloneNativeSrc, unzipSrcNative]) {
+  commandLine 'bash', '-c', 
+  """diff -r -q \
+    -x .git \
+    -x .gitignore \
+    ${nativeSrcDist}/apache-geode-native ${nativeSrcClone}"""
+}
+
 test.dependsOn cloneSrc
-check.dependsOn verifySigs, buildSrc, testgfsh, compareSrc, buildExampleSrc
+check.dependsOn verifySigs, buildSrc, testgfsh, compareSrc, buildExampleSrc, compareNativeSrc
