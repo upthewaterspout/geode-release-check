@@ -37,7 +37,7 @@ task download(type:Exec) {
 
 //TODO - remove command line dependency
 task verifySHA(type:Exec, dependsOn: download) {
-  commandLine 'bash', '-c', 'ls *.zip *.tar.gz *.tgz | xargs -n1 -I {} shasum -a 256 -c {}.sha256'
+  commandLine 'bash', '-c', 'ls *.zip *.tar.gz *.tgz | xargs -n1 -I {} bash -c "shasum -c {}.sha*"'
   workingDir=downloadDir
 }
 
