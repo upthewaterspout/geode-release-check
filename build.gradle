@@ -71,10 +71,10 @@ task testgfsh(type: Exec, dependsOn: unzipBin) {
 }
 
 task unzipExampleSrc(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/apache-geode-examples-${versionNORC}.zip")
+  def zipFile = file("${downloadDir}/apache-geode-examples-${versionNORC}.tar.gz")
   def outputDir = file(exampleSrc)
 
-  from zipTree(zipFile)
+  from tarTree(zipFile)
   into outputDir
 }
 
