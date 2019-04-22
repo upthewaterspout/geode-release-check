@@ -107,7 +107,7 @@ task cloneNativeSrc(type:Exec) {
 }
 
 task unzipSrcNative(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/apache-geode-native-${versionNORC}-Source.tar.gz")
+  def zipFile = file("${downloadDir}/apache-geode-native-${versionNORC}-src.tar.gz")
   def outputDir = file(nativeSrcDist)
 
   from tarTree(zipFile)
