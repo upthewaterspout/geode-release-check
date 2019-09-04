@@ -2,7 +2,7 @@ This is a simple project to verify a geode release.
 
 To use, run ./gradlew build with the urls and version of the release
 
-./gradlew build -PmavenURL=https://repository.apache.org/content/repositories/orgapachegeode-1006 -PdownloadURL=https://dist.apache.org/repos/dist/dev/incubator/geode/1.0.0-incubating.M3.RC2 -Pversion=1.0.0-incubating.M3.RC2
+./gradlew build -PmavenURL=https://repository.apache.org/content/repositories/orgapachegeode-1058 -PdownloadURL=https://dist.apache.org/repos/dist/dev/geode/1.10.0.RC1/ -Pversion=1.10.0.RC1
 
 The GPG verification will only pass if you have imported the signature from the KEYS file.
 
