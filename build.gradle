@@ -129,6 +129,7 @@ task compareSrc(type:Exec, dependsOn: cloneSrc) {
     -x .travis.yml \
     -x jpf.properties \
     -x .gitattributes \
+    -x geode-old-versions \
     -x KEYS \
     ${srcDist}/apache-geode-${versionNORC}-src ${srcClone}"""
 }
