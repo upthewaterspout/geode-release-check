@@ -140,7 +140,7 @@ task compareNativeSrc(type:Exec, dependsOn: [cloneNativeSrc, unzipSrcNative]) {
   """diff -r -q \
     -x .git \
     -x .gitignore \
-    ${nativeSrcDist}/apache-geode-native ${nativeSrcClone}"""
+    ${nativeSrcDist}/apache-geode-native-${versionNORC} ${nativeSrcClone}"""
 }
 
 test.dependsOn cloneSrc
