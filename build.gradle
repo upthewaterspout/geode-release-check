@@ -71,7 +71,7 @@ task testgfsh(type: Exec, dependsOn: unzipBin) {
 }
 
 task unzipExampleSrc(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/apache-geode-examples-${versionNORC}.tar.gz")
+  def zipFile = file("${downloadDir}/apache-geode-examples-${versionNORC}-src.tgz")
   def outputDir = file(exampleSrc)
 
   from tarTree(zipFile)
@@ -87,7 +87,7 @@ task buildSrc(type: Exec, dependsOn: unzipSrc) {
 
 //This is deliberately *not* using gradle build to make sure the wrapper works
 task buildExampleSrc(type: Exec, dependsOn: unzipExampleSrc) {
-  workingDir="${exampleSrc}/apache-geode-examples-$versionNORC"
+  workingDir="${exampleSrc}/apache-geode-examples-$versionNORC-src"
   commandLine './gradlew', 'build', 'runAll', "-PgeodeRepositoryUrl=$mavenURL", "-PgeodeReleaseUrl=$downloadURL"
 }
 
@@ -107,7 +107,7 @@ task cloneNativeSrc(type:Exec) {
 }
 
 task unzipSrcNative(type: Copy, dependsOn: download) {
-  def zipFile = file("${downloadDir}/apache-geode-native-${versionNORC}-src.tar.gz")
+  def zipFile = file("${downloadDir}/apache-geode-native-${versionNORC}-src.tgz")
   def outputDir = file(nativeSrcDist)
 
   from tarTree(zipFile)
@@ -140,7 +140,7 @@ task compareNativeSrc(type:Exec, dependsOn: [cloneNativeSrc, unzipSrcNative]) {
   """diff -r -q \
     -x .git \
     -x .gitignore \
-    ${nativeSrcDist}/apache-geode-native-${versionNORC} ${nativeSrcClone}"""
+    ${nativeSrcDist}/apache-geode-native-${versionNORC}-src ${nativeSrcClone}"""
 }
 
 test.dependsOn cloneSrc
